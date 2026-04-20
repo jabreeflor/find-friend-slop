@@ -78,14 +78,62 @@ def fetch_details(appid: int) -> dict | None:
     return entry.get("data") or {}
 
 
+# Steam content_descriptor IDs that indicate adult/sexual content.
+#   1 = Some Nudity or Sexual Content
+#   3 = Adult Only Sexual Content
+#   4 = Frequent Nudity or Sexual Content
+# (ID 2 = Frequent Violence/Gore and ID 5 = General Mature Content are kept.)
+NSFW_DESCRIPTOR_IDS = {1, 3, 4}
+
+# Substrings (case-insensitive) in genres / name / description that flag adult content.
+NSFW_KEYWORDS = (
+    "nudity",
+    "sexual content",
+    "hentai",
+    "eroge",
+    "nsfw",
+    "adults only",
+    "18+",
+    "porn",
+    "erotic",
+)
+
+
+def is_nsfw(details: dict) -> bool:
+    """Return True if Steam metadata flags this game as adult/sexual content."""
+    cd = (details.get("content_descriptors") or {}).get("ids") or []
+    if any(cid in NSFW_DESCRIPTOR_IDS for cid in cd):
+        return True
+
+    notes = ((details.get("content_descriptors") or {}).get("notes") or "").lower()
+    if notes and any(kw in notes for kw in NSFW_KEYWORDS):
+        return True
+
+    genres = " ".join((g.get("description") or "") for g in (details.get("genres") or [])).lower()
+    if any(kw in genres for kw in NSFW_KEYWORDS):
+        return True
+
+    # Last-resort heuristic: name or short description obviously advertising it.
+    haystack = f"{details.get('name', '')} {details.get('short_description', '')}".lower()
+    if any(kw in haystack for kw in NSFW_KEYWORDS):
+        return True
+
+    return False
+
+
 def build_games(
     appid_bucket_rank: Iterable[tuple[int, str, int]],
     sleep_between: float = 0.25,
 ) -> list[Game]:
     games: list[Game] = []
+    skipped_nsfw = 0
     for i, (appid, bucket, bucket_rank) in enumerate(appid_bucket_rank):
         details = fetch_details(appid)
         if not details:
+            continue
+        if is_nsfw(details):
+            skipped_nsfw += 1
+            time.sleep(sleep_between)
             continue
         price = details.get("price_overview")
         is_free = details.get("is_free", False) or price is None
@@ -114,6 +162,9 @@ def build_games(
         ))
         # Polite pacing to avoid Steam's rate limit.
         time.sleep(sleep_between)
+    if skipped_nsfw:
+        import sys
+        print(f"[find-friend-slop] filtered {skipped_nsfw} NSFW games", file=sys.stderr)
     return games
 
 

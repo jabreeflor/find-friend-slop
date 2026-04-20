@@ -10,9 +10,10 @@ You give it a price range. It pulls trending games from Steam, filters them to y
 
 1. Pulls trending games from Steam's public `featuredcategories` endpoint (top sellers, specials, new releases).
 2. Enriches each candidate with live price/discount data via `appdetails`.
-3. Filters to the price range you gave it.
-4. Ranks the survivors using a weighted sum — **sale 50% / trending 30% / price fit 20%** (tunable in `scripts/fetch_games.py::score_game`).
-5. Renders a dark-mode proposal page. Each card links to the Steam store page for that game.
+3. **Filters out NSFW / adult-sexual-content titles** using Steam's `content_descriptors` (IDs 1, 3, 4) plus genre and keyword checks (see `is_nsfw()` in `scripts/fetch_games.py`).
+4. Filters to the price range you gave it.
+5. Ranks the survivors using a weighted sum — **sale 50% / trending 30% / price fit 20%** (tunable in `scripts/fetch_games.py::score_game`).
+6. Renders a dark-mode proposal page. Each card links to the Steam store page for that game.
 
 No Steam API key required.
 
