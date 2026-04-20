@@ -103,6 +103,8 @@ NSFW_KEYWORDS = (
     "18+",
     "porn",
     "erotic",
+    # Specific-title belt-and-braces blocks (Steam occasionally mis-tags these).
+    "sisters in sin",
 )
 
 

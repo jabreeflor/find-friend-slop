@@ -4,7 +4,7 @@ A Claude Code slash-command skill for building a one-click **Steam game proposal
 
 You give it a price range. It pulls trending games from Steam, filters them to your budget, bumps the ones currently on sale, and renders a polished HTML page where every card links straight to the Steam store.
 
-![find-friend-slop output screenshot](docs/screenshot.png)
+![find-friend-slop output screenshot](docs/screenshot-v2.png)
 
 ## What it does
 
